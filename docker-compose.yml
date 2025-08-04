@@ -1,0 +1,49 @@
+# docker-compose.yml
+
+version: '3.8'
+
+services:
+  # Your existing web service
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    depends_on:
+      - redis
+    restart: unless-stopped
+    networks:
+      - ocr_network
+
+  # Your existing Redis service
+  redis:
+    image: redis:6.2-alpine
+    volumes:
+      - redis-data:/data
+    restart: unless-stopped
+    networks:
+      - ocr_network
+
+  # The new Jenkins service, integrated into the same network
+  jenkins:
+    image: jenkins/jenkins:lts-jdk11
+    container_name: jenkins
+    ports:
+      - "8080:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      # This mount allows Jenkins to control Docker containers on the host
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: "on-failure"
+    networks:
+      - ocr_network
+
+# Define the named volumes for data persistence
+volumes:
+  redis-data:
+  jenkins_home:
+
+# Define a custom network for our services
+networks:
+  ocr_network:
+    driver: bridge

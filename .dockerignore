@@ -1,0 +1,11 @@
+# .dockerignore
+
+# Ignore Python virtual environment
+.venv/
+
+# Ignore Python bytecode
+__pycache__/
+*.pyc
+
+# Ignore environment variables file
+.env
