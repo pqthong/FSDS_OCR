@@ -23,6 +23,7 @@ pipeline {
                 script {
                     // Create a virtual environment named 'venv'
                     echo 'Creating Python virtual environment...'
+                    sh 'apt install python3.11-venv'
                     sh 'python3 -m venv venv'
                     
                     // Activate the virtual environment
