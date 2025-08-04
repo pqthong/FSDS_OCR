@@ -1,0 +1,84 @@
+---
+- name: Deploy FastAPI OCR API to a VM (HTTP only)
+  hosts: ocr-server
+  become: yes
+  vars:
+    # This is the full path to your Docker image in Google Artifact Registry
+    image_name: "asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/realtime-ocr-web/realtime-ocr-web:latest"
+    # The port your FastAPI app runs on inside the container
+    app_port: 8000
+
+  tasks:
+    - name: Install core dependencies
+      apt:
+        name:
+          - docker.io
+          - nginx
+        state: present
+        update_cache: yes
+
+    - name: Ensure the Docker Compose plugin directory exists
+      file:
+        path: /usr/local/lib/docker/cli-plugins
+        state: directory
+        owner: root
+        mode: '0755'
+
+    - name: Download and install Docker Compose V2 plugin
+      ansible.builtin.get_url:
+        url: https://github.com/docker/compose/releases/download/v2.27.0/docker-compose-linux-x86_64
+        dest: /usr/local/lib/docker/cli-plugins/docker-compose
+        mode: '0755'
+        force: yes
+
+    - name: Add Google Cloud SDK apt repository key
+      ansible.builtin.apt_key:
+        url: https://packages.cloud.google.com/apt/doc/apt-key.gpg
+        state: present
+
+    - name: Add Google Cloud SDK apt repository
+      ansible.builtin.apt_repository:
+        repo: deb https://packages.cloud.google.com/apt cloud-sdk main
+        state: present
+        
+    - name: Install Google Cloud SDK
+      apt:
+        name: google-cloud-sdk
+        state: present
+        update_cache: yes
+      
+    - name: Configure Docker to use gcloud credentials for Artifact Registry
+      ansible.builtin.command:
+        cmd: gcloud auth configure-docker asia-southeast1-docker.pkg.dev --quiet
+      become: yes
+      # This command can fail if the registry is already configured, so we ignore errors.
+      ignore_errors: yes
+
+    - name: Create application directory
+      file:
+        path: /app/ocr
+        state: directory
+        owner: "{{ ansible_user }}"
+        mode: '0755'
+
+    - name: Copy docker-compose.yaml to the server
+      template:
+        src: docker-compose.yml.j2
+        dest: /app/ocr/docker-compose.yml
+
+    - name: Copy NGINX configuration
+      template:
+        src: nginx.conf.j2
+        dest: /etc/nginx/sites-available/default
+      notify: Reload NGINX
+
+    - name: Use docker-compose to start the application
+      community.docker.docker_compose_v2:
+        project_src: /app/ocr
+        state: present
+
+  handlers:
+    - name: Reload NGINX
+      service:
+        name: nginx
+        state: reloaded

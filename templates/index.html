@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-time OCR</title>
+    <link rel="stylesheet" href="/static/styles.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen p-4">
+
+    <div class="app-container">
+        <h1 class="text-3xl font-bold text-gray-800">Real-time OCR App</h1>
+        <p class="text-gray-600 text-center">Capture text from your webcam in real time.</p>
+
+        <!-- Status message area -->
+        <div id="status-container" class="w-full max-w-md">
+            <div id="statusMessage" class="status-message">
+                Connecting to server...
+            </div>
+        </div>
+
+        <div class="content-wrapper">
+            <!-- Video and Control Container -->
+            <div class="video-container">
+                <h2 class="text-xl font-semibold mb-2">Camera Feed</h2>
+                <video id="video" class="video-element" autoplay playsinline></video>
+                <canvas id="canvas" class="hidden-canvas"></canvas>
+                <button id="startStopButton" class="action-button" disabled>
+                    Start OCR
+                </button>
+            </div>
+    
+            <!-- OCR Result Container -->
+            <div class="result-container">
+                <div class="flex justify-between items-center mb-2">
+                    <h2 class="text-xl font-semibold">OCR Result</h2>
+                    <button id="downloadButton" class="text-indigo-500 hover:text-indigo-700 font-medium text-sm disabled:opacity-50" disabled>
+                        Download Text
+                    </button>
+                </div>
+                <div id="result-box" class="result-box-style">
+                    OCR results will appear here...
+                </div>
+            </div>
+        </div>
+
+        <!-- Custom Modal for Alerts -->
+        <div id="alert-modal" class="modal">
+            <div class="modal-content">
+                <span class="close-button">&times;</span>
+                <p id="alert-message"></p>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+</body>
+</html>

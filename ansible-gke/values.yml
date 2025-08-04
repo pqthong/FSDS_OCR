@@ -1,0 +1,32 @@
+# ansible/values.yaml
+
+# This file contains the variables used by the Ansible playbook.
+# It is separate from the Helm chart's own values.yaml, and its
+# values will be passed to the Helm chart during deployment.
+
+# Define the Helm chart's name and the release name for this deployment.
+chartName: "ocr-chart"
+releaseName: "ocr-app"
+
+# Image configuration for the FastAPI application.
+image:
+  # The repository and tag of the Docker image from GCP Artifact Registry.
+  repository: "asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/realtime-ocr-web:latest"
+  # The image pull policy.
+  pullPolicy: "IfNotPresent"
+  # The tag of the image.
+  tag: "latest"
+
+# The number of replicas for the application Deployment.
+replicaCount: 2
+
+# Service configuration.
+service:
+  # The type of Kubernetes Service to create.
+  type: LoadBalancer
+  # The port for the service.
+  port: 8000
+
+# The hostname for the Redis service. This must match the Kubernetes service name.
+redisHost: "redis-service"
+

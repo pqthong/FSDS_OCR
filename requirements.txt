@@ -1,0 +1,7 @@
+# requirements.txt
+
+fastapi[all]
+uvicorn
+pytesseract
+pillow
+redis

@@ -1,0 +1,22 @@
+replicaCount: 2
+
+image:
+  repository: asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/realtime-ocr-web/realtime-ocr-web
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+service:
+  type: ClusterIP
+  port: 8000
+
+redis:
+  image: "redis:6.2-alpine"
+  port: 6379
+
+ingress:
+  enabled: true
+  className: "nginx"
+  # This tells NGINX to use a secret for SSL/TLS.
+  tls:
+    enabled: true
+    secretName: "ocr-app-tls"

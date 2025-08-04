@@ -1,0 +1,107 @@
+# === PYTHON ===
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+*.egg-info/
+*.egg
+*.env
+.venv/
+.env/
+.envrc
+pip-log.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Poetry
+poetry.lock
+.poetry/
+
+# Pydantic cache
+__pydantic__/
+
+
+# === FASTAPI / UVICORN ===
+*.log
+*.db
+instance/
+*.sqlite3
+
+
+# === FRONTEND ===
+# Node, build, and frontend artifacts
+node_modules/
+dist/
+build/
+*.map
+*.lock
+*.cache
+*.DS_Store
+
+# Vue/React/Svelte dev tools (if applicable)
+.vite/
+.next/
+.out/
+.svelte-kit/
+
+# Coverage
+coverage/
+*.lcov
+
+
+# === DOCKER ===
+**/Dockerfile
+**/docker-compose.yml
+**/.dockerignore
+*.tar
+.docker/
+
+# === TERRAFORM ===
+*.tfstate
+*.tfstate.backup
+.terraform/
+.terraform.lock.hcl
+crash.log
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# === ANSIBLE ===
+*.retry
+*.log
+vault_pass.txt
+group_vars/all/vault.yml
+
+# === SYSTEM / IDE ===
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Linux
+*~
+
+# JetBrains (PyCharm, etc.)
+.idea/
+
+# VSCode
+.vscode/
+
+# Backup files
+*.bak
+*.swp
+*.swo
+*.orig
+*.tmp
+
+# === LOGS ===
+*.log
+logs/
+*.out
+

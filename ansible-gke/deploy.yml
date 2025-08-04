@@ -1,0 +1,63 @@
+---
+- name: Deploy Helm Chart to GKE Cluster
+  hosts: localhost
+  connection: local
+  gather_facts: no
+  vars:
+    # Set these variables from the Terraform outputs or manually
+    gcp_project_id: "{{ gcp_project_id }}"
+    gke_cluster_name: "{{ gke_cluster_name }}"
+    gke_cluster_location: "{{ gke_cluster_location }}"
+    helm_chart_path: "./ocr-chart" # Path to your Helm chart directory
+    release_name: "ocr-app"
+    namespace: "default"
+    values_file: "./values.yaml"
+
+  tasks:
+    - name: Ensure gcloud CLI is installed
+      ansible.builtin.command: gcloud --version
+      register: gcloud_check
+      ignore_errors: yes
+      changed_when: false
+      
+    - name: Fail if gcloud is not installed
+      ansible.builtin.fail:
+        msg: "gcloud CLI is not installed. Please install it to continue."
+      when: gcloud_check.rc != 0
+
+    - name: Ensure Helm is installed
+      ansible.builtin.command: helm version
+      register: helm_check
+      ignore_errors: yes
+      changed_when: false
+      
+    - name: Fail if Helm is not installed
+      ansible.builtin.fail:
+        msg: "Helm is not installed. Please install it to continue."
+      when: helm_check.rc != 0
+
+    - name: Configure kubectl with GKE credentials
+      ansible.builtin.command: >
+        gcloud container clusters get-credentials {{ gke_cluster_name }}
+        --region={{ gke_cluster_location }}
+        --project={{ gcp_project_id }}
+      changed_when: true
+      register: get_credentials_result
+    
+    - name: Log kubectl credentials command output
+      ansible.builtin.debug:
+        msg: "{{ get_credentials_result.stdout }}"
+
+    - name: Deploy or upgrade the Helm chart
+      community.kubernetes.helm:
+        name: "{{ release_name }}"
+        chart_ref: "{{ helm_chart_path }}"
+        state: present
+        namespace: "{{ namespace }}"
+        values_files:
+          - "{{ values_file }}"
+      register: helm_deployment
+    
+    - name: Log Helm deployment results
+      ansible.builtin.debug:
+        msg: "{{ helm_deployment }}"

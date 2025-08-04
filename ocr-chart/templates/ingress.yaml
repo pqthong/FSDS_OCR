@@ -1,0 +1,24 @@
+{{- if .Values.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "ocr-api-chart.fullname" . }}
+  labels:
+    {{- include "ocr-api-chart.labels" . | nindent 4 }}
+  annotations:
+    kubernetes.io/ingress.class: {{ .Values.ingress.className }}
+spec:
+  # The `tls` section is modified to not specify a host, so it applies to all.
+  tls:
+  - secretName: {{ .Values.ingress.tls.secretName }}
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ include "ocr-api-chart.fullname" . }}
+            port:
+              number: {{ .Values.service.port }}
+{{- end -}}

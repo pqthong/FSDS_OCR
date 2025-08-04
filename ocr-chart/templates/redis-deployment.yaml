@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: ocr-redis
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: ocr-redis
+  template:
+    metadata:
+      labels:
+        app: ocr-redis
+    spec:
+      containers:
+      - name: redis
+        image: "{{ .Values.redis.image }}"
+        ports:
+        - containerPort: {{ .Values.redis.port }}

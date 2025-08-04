@@ -1,0 +1,47 @@
+# docker-compose.yml
+version: '3.8'
+
+services:
+  ocr-api:
+    # Use the pre-built Docker image from your GCP Artifact Registry
+    # This is much faster and more reliable than building on the VM
+    image: {{ image_name }}
+    
+    # Map the container's port 8000 to the host's port 8000
+    ports:
+      - "{{ app_port }}:{{ app_port }}"
+      
+    # Ensure the ocr-api service starts after the redis service is ready
+    depends_on:
+      - redis
+      
+    # Restart the container if it crashes
+    restart: unless-stopped
+    
+    # Use the custom network
+    networks:
+      - ocr_network
+
+  redis:
+    # Use the official Redis image from Docker Hub
+    image: redis:6.2-alpine
+    
+    # Use a named volume to persist Redis data
+    volumes:
+      - redis-data:/data
+      
+    # Restart the container if it crashes
+    restart: unless-stopped
+    
+    # Use the custom network
+    networks:
+      - ocr_network
+
+# Define the named volume for Redis data persistence
+volumes:
+  redis-data:
+
+# Define a custom network for our services
+networks:
+  ocr_network:
+    driver: bridge
