@@ -24,7 +24,7 @@ pipeline {
                 script {
                     echo "Installing Python dependencies for testing..."
                     // We need all the new dependencies, plus the new websocket client
-                    sh "pip install pytest websockets Pillow"
+                    sh "pip install -r requirements.txt"
                     
                     echo "Running tests..."
                     // Execute pytest. The pipeline will fail if any test fails.
