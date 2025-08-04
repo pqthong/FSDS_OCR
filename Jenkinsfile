@@ -18,14 +18,29 @@ pipeline {
                 checkout scm
             }
         }
-        
-        stage('Test') {
+        stage('Install Python Dependencies') {
             steps {
                 script {
-                    echo "Installing Python dependencies for testing..."
-                    // We need all the new dependencies, plus the new websocket client
-                    sh "pip install -r requirements.txt"
+                    // Create a virtual environment named 'venv'
+                    echo 'Creating Python virtual environment...'
+                    sh 'python3 -m venv venv'
                     
+                    // Activate the virtual environment
+                    // The 'source' command is specific to bash.
+                    // The `venv/bin/pip` approach works without activation.
+                    // For Jenkins, we can just use the full path to the executables.
+                    echo 'Installing dependencies from requirements.txt...'
+                    sh 'venv/bin/pip install -r requirements.txt'
+                    
+                    // After this step, all subsequent Python commands should
+                    // use the virtual environment's executables.
+                    // For example, to run a test script:
+                    // sh 'venv/bin/python your_test_script.py'
+                }
+            }
+        stage('Test') {
+            steps {
+                script {                
                     echo "Running tests..."
                     // Execute pytest. The pipeline will fail if any test fails.
                     sh "pytest test_api.py"
