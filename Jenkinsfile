@@ -44,7 +44,7 @@ pipeline {
                 script {                
                     echo "Running tests..."
                     // Execute pytest. The pipeline will fail if any test fails.
-                    sh "venv/bin/pytest test_api.py"
+                    sh "venv/bin/pytest test_main.py"
                 }
             }
         }
