@@ -105,3 +105,17 @@ Desktop.ini
 logs/
 *.out
 
+# === SSL Keys & Certificates ===
+*.crt
+*.key
+*.pem
+*.csr
+*.pfx
+*.p12
+*.der
+*.jks
+*.keystore
+tls.*
+certs/
+secrets/
+*.enc
