@@ -4,10 +4,10 @@ FROM jenkins/jenkins:lts-jdk11
 # Switch to the root user to install software
 USER root
 
-# Install Python 3 and pip
-# We use apt-get for a Debian-based image
+# Install Python 3, pip, and the venv package
 RUN apt-get update && apt-get install -y \
     python3-pip \
+    python3-venv \
     && rm -rf /var/lib/apt/lists/*
 
 # Set python3 as the default python command
