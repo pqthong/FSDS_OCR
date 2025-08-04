@@ -38,6 +38,7 @@ pipeline {
                     // sh 'venv/bin/python your_test_script.py'
                 }
             }
+        }
         stage('Test') {
             steps {
                 script {                
