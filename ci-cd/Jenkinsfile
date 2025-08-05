@@ -57,5 +57,19 @@ pipeline {
                 }
             }
         }
+        stage('Build Image') {
+            steps {
+                echo 'Building Docker image...'
+                // Navigate into the directory containing the Dockerfile.
+                // Based on the repository, this is likely in the 'app' directory.
+                dir('app') {
+                    // Use a unique tag based on the Jenkins build number, and also a 'latest' tag.
+                    // Replace 'asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr' with your
+                    // actual image repository path.
+                    sh 'docker build -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:${BUILD_NUMBER} -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:latest .'
+                }
+                echo 'Docker image built and tagged successfully.'
+            }
+        }
     }
 }
