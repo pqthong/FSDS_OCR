@@ -18,8 +18,7 @@ resource "google_project_iam_member" "storage_admin_role" {
   member  = "serviceAccount:${google_service_account.jenkins_sa.email}"
 }
 
-# --- ADD THIS NEW BLOCK ---
-# Grant the service account the Artifact Registry Writer role
+
 resource "google_project_iam_member" "artifact_registry_writer_role" {
   project = var.project_id
   role    = "roles/artifactregistry.writer"

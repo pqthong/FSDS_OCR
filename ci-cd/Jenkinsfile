@@ -1,18 +1,18 @@
+// A declarative pipeline for building and testing the FSDS_OCR repository with GCP integration.
 pipeline {
-    // The agent directive tells Jenkins which environment to use for the entire pipeline.
+    // We're using a generic agent, assuming it has the necessary tools (gcloud, docker, helm, kubectl).
+    // For a more robust solution, you could use a custom Docker agent like we discussed previously.
     agent any
 
-    stages {
-        stage('Verify Agent') {
-            steps {
-                script {
-                    echo "Checking if the custom agent is working..."
-                    // This command will confirm that Python is installed in our custom image.
-                    sh 'python3 --version'
-                }
-            }
-        }
+    environment {
+        // Define the project ID and cluster name. You can configure these as environment variables in Jenkins.
+        GCP_PROJECT_ID = "alert-basis-466711-e1"
+        GKE_CLUSTER_NAME = "your-gke-cluster-name" // <-- REPLACE WITH YOUR CLUSTER NAME
+        GKE_CLUSTER_LOCATION = "us-central1" // <-- REPLACE WITH YOUR CLUSTER REGION/ZONE
+        IMAGE_REPO = "asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr"
+    }
 
+    stages {
         stage('Checkout Code') {
             steps {
                 echo 'Cloning the repository from GitHub...'
@@ -23,71 +23,81 @@ pipeline {
                 echo 'Repository cloned successfully.'
             }
         }
-
-        // The second stage sets up the Python environment and runs the tests.
+        
+        // This stage sets up the Python virtual environment and runs the tests.
         stage('Run Tests') {
             steps {
-                // We use a script block to execute multiple shell commands sequentially.
                 script {
                     echo 'Setting up Python virtual environment...'
-                    // Create a Python virtual environment to isolate project dependencies.
-                    // This prevents conflicts with other projects on the same Jenkins agent.
                     sh 'python3 -m venv venv'
-                    
-                    // --- FIX FOR PERMISSION DENIED ERROR ---
-                    // Directly calling the pip and pytest executables from within the venv
-                    // avoids the need to 'activate' the environment, which can be unreliable
-                    // in a non-interactive shell context like Jenkins. It also ensures
-                    // all packages are installed locally to the workspace.
                     
                     echo 'Installing dependencies from app/requirements.txt...'
                     // Use the pip executable from the virtual environment to install packages.
                     sh './venv/bin/pip install -r app/requirements.txt'
                     
                     echo 'Running tests...'
-                    // Use the pytest executable from the virtual environment to run the tests.
-                    sh './venv/bin/pytest'
+                    // Use the pytest executable from the virtual environment and specify the test file path.
+                    sh './venv/bin/pytest app/tests/test_main.py'
                     
                     echo 'Tests completed.'
                 }
             }
         }
-        stage('Build Image') {
+        
+        // This stage handles authentication with GCP, builds the Docker image, and pushes it to Artifact Registry.
+        stage('Build and Push Image') {
             steps {
-                echo 'Building Docker image...'
-                // Navigate into the directory containing the Dockerfile.
-                // Based on the repository, this is likely in the 'app' directory.
-                dir('app') {
-                    // Use a unique tag based on the Jenkins build number, and also a 'latest' tag.
-                    // Replace 'asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr' with your
-                    // actual image repository path.
-                    sh 'docker build -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr:${BUILD_NUMBER} .'
+                // The withCredentials block securely accesses the service account key from Jenkins.
+                withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GCP_KEY_FILE')]) {
+                    script {
+                        echo 'Authenticating with GCP service account...'
+                        // Activate the service account using the key file.
+                        // This command sets up authentication for all subsequent gcloud commands.
+                        sh "gcloud auth activate-service-account --key-file='${GCP_KEY_FILE}'"
+                        
+                        echo 'Configuring Docker for Artifact Registry...'
+                        // Configure Docker to use gcloud as a credential helper for Artifact Registry.
+                        sh 'gcloud auth configure-docker asia-southeast1-docker.pkg.dev'
+                        
+                        echo 'Building and pushing Docker image...'
+                        // Navigate into the directory containing the Dockerfile.
+                        dir('app') {
+                            // Build the image and tag it with the full repository path and build number.
+                            sh "docker build -t ${IMAGE_REPO}:${BUILD_NUMBER} ."
+                            
+                            // Push the image to Artifact Registry.
+                            sh "docker push ${IMAGE_REPO}:${BUILD_NUMBER}"
+                        }
+                        echo 'Docker image built and pushed successfully.'
+                    }
                 }
-                echo 'Docker image built and tagged successfully.'
             }
         }
-
-        stage('Push Image') {
-            steps {
-                echo 'Pushing Docker image to Google Artifact Registry...'
-                // Push the Docker image to the specified repository.
-                // This uses the same tags as when it was built.
-                sh 'docker push asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr:${BUILD_NUMBER}'
-                echo 'Docker image pushed successfully.'
-            }
-        }
-
+        
+        // The deploy stage now uses the service account credentials to authenticate with GKE.
         stage('Deploy to GKE') {
             steps {
-                echo 'Deploying to Google Kubernetes Engine...'
-                // Use kubectl to apply the deployment configuration.
-                // This assumes you have a deployment.yaml file in the 'app' directory.
-                dir('kubernetes') {
-                    // Apply the Kubernetes deployment configuration.
-                    // This will update the deployment with the new image.
-                    sh 'helm upgrade --install fsds-ocr . --set image.repository=asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr,image.tag=${BUILD_NUMBER}'
+                // The withCredentials block securely accesses the service account key.
+                withCredentials([file(credentialsId: 'gcp-service-account-key', variable: 'GCP_KEY_FILE')]) {
+                    script {
+                        echo 'Authenticating with GCP service account and GKE cluster...'
+                        // Activate the service account using the key file.
+                        sh "gcloud auth activate-service-account --key-file='${GCP_KEY_FILE}'"
+                        
+                        // Get GKE cluster credentials. This command sets up the kubeconfig for subsequent kubectl/helm commands.
+                        sh "gcloud container clusters get-credentials ${GKE_CLUSTER_NAME} --region=${GKE_CLUSTER_LOCATION} --project=${GCP_PROJECT_ID}"
+                        
+                        echo 'Deploying application using Helm chart...'
+                        // Navigate into the directory containing the Helm chart.
+                        dir('ocr-chart') {
+                            // The 'helm upgrade --install' command will deploy or update the chart.
+                            // We use '--set' to dynamically update the image tag from the build number.
+                            sh "helm upgrade --install fsds-ocr . --set image.repository=${IMAGE_REPO},image.tag=${BUILD_NUMBER} --namespace default"
+                        }
+                        
+                        echo 'Deployment initiated successfully.'
+                    }
                 }
-                echo 'Deployment applied successfully.'
             }
         }
     }
