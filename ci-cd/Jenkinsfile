@@ -51,7 +51,7 @@ pipeline {
                     
                     echo 'Running tests...'
                     // Use the pytest executable from the virtual environment to run the tests.
-                    sh './venv/bin/pytest app/tests/test_main.py'
+                    sh './venv/bin/pytest'
                     
                     echo 'Tests completed.'
                 }
