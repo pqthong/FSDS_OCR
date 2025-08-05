@@ -89,7 +89,7 @@ pipeline {
                         
                         echo 'Deploying application using Helm chart...'
                         // Navigate into the directory containing the Helm chart.
-                        dir('ocr-chart') {
+                        dir('kubernetes/helm') {
                             // The 'helm upgrade --install' command will deploy or update the chart.
                             // We use '--set' to dynamically update the image tag from the build number.
                             sh "helm upgrade --install fsds-ocr . --set image.repository=${IMAGE_REPO},image.tag=${BUILD_NUMBER} --namespace default"
