@@ -66,5 +66,29 @@ pipeline {
                 echo 'Docker image built and tagged successfully.'
             }
         }
+
+        stage('Push Image') {
+            steps {
+                echo 'Pushing Docker image to Google Artifact Registry...'
+                // Push the Docker image to the specified repository.
+                // This uses the same tags as when it was built.
+                sh 'docker push asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:${BUILD_NUMBER}'
+                echo 'Docker image pushed successfully.'
+            }
+        }
+
+        stage('Deploy to GKE') {
+            steps {
+                echo 'Deploying to Google Kubernetes Engine...'
+                // Use kubectl to apply the deployment configuration.
+                // This assumes you have a deployment.yaml file in the 'app' directory.
+                dir('kubernetes') {
+                    // Apply the Kubernetes deployment configuration.
+                    // This will update the deployment with the new image.
+                    sh 'helm upgrade --install fsds-ocr . --set image.repository=asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr,image.tag=${BUILD_NUMBER}'
+                }
+                echo 'Deployment applied successfully.'
+            }
+        }
     }
 }

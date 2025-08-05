@@ -2,7 +2,7 @@ replicaCount: 2
 
 image:
   repository: asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/realtime-ocr-web/realtime-ocr-web
-  pullPolicy: IfNotPresent
+  pullPolicy: Always
   tag: "latest"
 
 service:
