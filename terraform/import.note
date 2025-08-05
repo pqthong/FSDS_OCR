@@ -1,0 +1,47 @@
+# This file is for the temporary import process only.
+# It should be deleted after `terraform apply` is successful.
+
+import {
+  to = module.artifact_registry.google_artifact_registry_repository.my_repo
+  id = "projects/${var.project_id}/locations/${var.gcp_region}/repositories/${var.artifact_registry_repo_name}"
+}
+
+import {
+  to = module.gke_cluster.google_container_cluster.primary
+  id = "projects/${var.project_id}/locations/${var.gcp_zone}/clusters/${var.gke_cluster_name}"
+}
+
+import {
+  to = module.gke_cluster.google_container_node_pool.primary_nodes
+  id = "projects/${var.project_id}/locations/${var.gcp_zone}/clusters/${var.gke_cluster_name}/nodePools/${var.gke_cluster_name}-node-pool"
+}
+
+import {
+  to = module.jenkins_iam.google_service_account.jenkins_sa
+  id = "projects/${var.project_id}/serviceAccounts/jenkins-gke-deployer@${var.project_id}.iam.gserviceaccount.com"
+}
+
+import {
+  to = module.jenkins_iam.google_project_iam_member.gke_developer_role
+  id = "${var.project_id} roles/container.developer serviceAccount:jenkins-gke-deployer@${var.project_id}.iam.gserviceaccount.com"
+}
+
+import {
+  to = module.jenkins_iam.google_project_iam_member.storage_admin_role
+  id = "${var.project_id} roles/storage.admin serviceAccount:jenkins-gke-deployer@${var.project_id}.iam.gserviceaccount.com"
+}
+
+import {
+  to = module.jenkins_iam.google_project_iam_member.artifact_registry_writer_role
+  id = "${var.project_id} roles/artifactregistry.writer serviceAccount:jenkins-gke-deployer@${var.project_id}.iam.gserviceaccount.com"
+}
+
+import {
+  to = module.jenkins_instance.google_compute_firewall.jenkins_firewall
+  id = "projects/${var.project_id}/global/firewalls/jenkins-allow-8080"
+}
+
+import {
+  to = module.jenkins_instance.google_compute_instance.jenkins_vm
+  id = "projects/${var.project_id}/zones/${var.gcp_zone}/instances/${var.jenkins_vm_name}"
+}

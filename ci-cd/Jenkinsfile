@@ -17,5 +17,45 @@ pipeline {
                 }
             }
         }
+
+        stage('Checkout Code') {
+            steps {
+                echo 'Cloning the repository from GitHub...'
+                // The 'git' step checks out the code.
+                // Replace 'main' with the correct branch name if it differs.
+                git url: 'https://github.com/pqthong/FSDS_OCR',
+                    branch: 'main'
+                echo 'Repository cloned successfully.'
+            }
+        }
+
+        // The second stage sets up the Python environment and runs the tests.
+        stage('Run Tests') {
+            steps {
+                // We use a script block to execute multiple shell commands sequentially.
+                script {
+                    echo 'Setting up Python virtual environment...'
+                    // Create a Python virtual environment to isolate project dependencies.
+                    // This prevents conflicts with other projects on the same Jenkins agent.
+                    sh 'python3 -m venv venv'
+                    
+                    // Activate the virtual environment
+                    sh '. venv/bin/activate'
+                    
+                    // Install the testing framework (pytest) and any other dependencies.
+                    // This assumes a 'requirements.txt' file exists in the 'app' directory.
+                    // If your dependencies are not in a requirements file, you would need to install them individually.
+                    sh 'pip install -r app/requirements.txt'
+                    
+                    echo 'Running tests...'
+                    // Execute the specified test file using pytest.
+                    // The 'pytest' command will discover and run tests in 'app/tests/test_main.py'.
+                    // You could also use 'python -m pytest app/tests/test_main.py' if the pytest command is not in the PATH.
+                    sh 'pytest app/tests/test_main.py'
+                    
+                    echo 'Tests completed.'
+                }
+            }
+        }
     }
 }
