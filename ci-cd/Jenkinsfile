@@ -61,7 +61,7 @@ pipeline {
                     // Use a unique tag based on the Jenkins build number, and also a 'latest' tag.
                     // Replace 'asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr' with your
                     // actual image repository path.
-                    sh 'docker build -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:${BUILD_NUMBER} -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:latest .'
+                    sh 'docker build -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr:${BUILD_NUMBER} -t asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:latest .'
                 }
                 echo 'Docker image built and tagged successfully.'
             }
@@ -72,7 +72,7 @@ pipeline {
                 echo 'Pushing Docker image to Google Artifact Registry...'
                 // Push the Docker image to the specified repository.
                 // This uses the same tags as when it was built.
-                sh 'docker push asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr:${BUILD_NUMBER}'
+                sh 'docker push asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr:${BUILD_NUMBER}'
                 echo 'Docker image pushed successfully.'
             }
         }
@@ -85,7 +85,7 @@ pipeline {
                 dir('kubernetes') {
                     // Apply the Kubernetes deployment configuration.
                     // This will update the deployment with the new image.
-                    sh 'helm upgrade --install fsds-ocr . --set image.repository=asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/fsds-ocr,image.tag=${BUILD_NUMBER}'
+                    sh 'helm upgrade --install fsds-ocr . --set image.repository=asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr,image.tag=${BUILD_NUMBER}'
                 }
                 echo 'Deployment applied successfully.'
             }
