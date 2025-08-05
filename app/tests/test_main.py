@@ -1,7 +1,7 @@
 # test_main.py
 import pytest
 from fastapi.testclient import TestClient
-from main import app, perform_ocr
+from app.main import app, perform_ocr
 import io
 from PIL import Image, ImageDraw, ImageFont
 

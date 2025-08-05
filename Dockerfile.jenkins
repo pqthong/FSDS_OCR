@@ -1,17 +1,22 @@
-# Start with the official Jenkins LTS image with JDK 11
-FROM jenkins/jenkins:lts-jdk11
+# We start with the official Jenkins Agent image with JDK 11.
+# This image is lightweight and already has the tools needed to connect to the controller.
+FROM jenkins/agent:latest-jdk11
 
-# Switch to the root user to install software
+# Switch to the root user to install software.
 USER root
 
-# Install Python 3, pip, and the venv package
-RUN apt-get update && apt-get install -y \
+# Install Python 3, pip, and the virtual environment package.
+# We also clean up the package lists to keep the image size small.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
     python3-pip \
-    python3-venv \
-    && rm -rf /var/lib/apt/lists/*
+    python3-venv && \
+    rm -rf /var/lib/apt/lists/*
 
-# Set python3 as the default python command
-RUN update-alternatives --install /usr/bin/python python /usr/bin/python3 1
+# Set python3 as the default 'python' command using a symbolic link,
+# which is often more reliable than 'update-alternatives'.
+RUN ln -s /usr/bin/python3 /usr/bin/python
 
-# Switch back to the jenkins user
+# Switch back to the 'jenkins' user, which is a security best practice.
+# The base image already created this user for us.
 USER jenkins
