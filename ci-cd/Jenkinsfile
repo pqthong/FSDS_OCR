@@ -8,7 +8,7 @@ pipeline {
                 script {
                     echo "Checking if the custom agent is working..."
                     // This command will confirm that Python is installed in our custom image.
-                    sh 'python --version'
+                    sh 'python3 --version'
                 }
             }
         }
