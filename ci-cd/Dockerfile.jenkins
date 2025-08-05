@@ -6,16 +6,42 @@ FROM jenkins/agent:latest-jdk11
 USER root
 
 # Install Python 3, pip, and the virtual environment package.
+# We also install curl and other dependencies needed for adding the Docker repository.
 # We also clean up the package lists to keep the image size small.
 RUN apt-get update && \
     apt-get install -y --no-install-recommends \
     python3-pip \
-    python3-venv && \
+    python3-venv \
+    curl \
+    gnupg \
+    lsb-release && \
     rm -rf /var/lib/apt/lists/*
 
 # Set python3 as the default 'python' command using a symbolic link,
 # which is often more reliable than 'update-alternatives'.
 RUN ln -s /usr/bin/python3 /usr/bin/python
+
+# --- Start of Docker installation additions ---
+# Add Docker's official GPG key
+RUN curl -fsSL https://download.docker.com/linux/debian/gpg | gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+# Add Docker repository to APT sources
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/debian $(lsb_release -cs) stable" | tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+# Update apt-get and install Docker components.
+# We install docker-ce, docker-ce-cli, and containerd.io to get a full Docker setup.
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+    docker-ce \
+    docker-ce-cli \
+    containerd.io && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add the 'jenkins' user to the 'docker' group.
+# This is a critical step that allows the Jenkins user to run docker commands without needing sudo.
+RUN usermod -aG docker jenkins
+
+# --- End of Docker installation additions ---
 
 # Switch back to the 'jenkins' user, which is a security best practice.
 # The base image already created this user for us.

@@ -1,11 +1,6 @@
 pipeline {
     // The agent directive tells Jenkins which environment to use for the entire pipeline.
-    agent {
-        docker {
-            image 'asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/jenkins-agent:latest'
-            args '-v /var/run/docker.sock:/var/run/docker.sock'
-        }
-    }
+    agent any
 
     stages {
         stage('Verify Agent') {
