@@ -39,27 +39,8 @@ resource "google_compute_instance" "jenkins_vm" {
   metadata_startup_script = <<-EOT
     #!/bin/bash
     sudo apt-get update
-    sudo apt-get install -y openjdk-17-jdk
-
-    curl -fsSL https://pkg.jenkins.io/debian-stable/jenkins.io.key | sudo tee /usr/share/keyrings/jenkins-keyring.asc > /dev/null
-    echo "deb [signed-by=/usr/share/keyrings/jenkins-keyring.asc] https://pkg.jenkins.io/debian-stable binary/" | sudo tee /etc/apt/sources.list.d/jenkins.list > /dev/null
-
-    sudo apt-get update
-    sudo apt-get install -y jenkins
-
-    sudo systemctl enable jenkins
-    sudo systemctl start jenkins
-
-    wget https://releases.hashicorp.com/terraform/1.5.7/terraform_1.5.7_linux_amd64.zip
-    unzip terraform_1.5.7_linux_amd64.zip
-    sudo mv terraform /usr/local/bin/
-
-    sudo apt-get install -y apt-transport-https ca-certificates curl
-    curl -s https://packages.cloud.google.com/apt/doc/apt-key.gpg | sudo gpg --dearmor -o /usr/share/keyrings/cloud.google.gpg
-    echo "deb [signed-by=/usr/share/keyrings/cloud.google.gpg] https://packages.cloud.google.com/apt cloud-sdk main" | sudo tee -a /etc/apt/sources.list.d/google-cloud-sdk.list
-    sudo apt-get update && sudo apt-get install -y kubectl
+    
     # Install Docker and its dependencies
-    sudo apt-get update
     sudo apt-get install -y ca-certificates curl gnupg lsb-release
     sudo mkdir -p /etc/apt/keyrings
     curl -fsSL https://download.docker.com/linux/debian/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg >/dev/null
@@ -67,7 +48,13 @@ resource "google_compute_instance" "jenkins_vm" {
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io
 
-    # Add the 'jenkins' user to the 'docker' group to run Docker commands
-    sudo usermod -aG docker jenkins
+    # Run the Jenkins container
+    sudo docker run \
+      --name jenkins \
+      --detach \
+      --restart=on-failure \
+      --publish 8080:8080 \
+      --volume jenkins_home:/var/jenkins_home \
+      jenkins/jenkins:lts
   EOT
 }
