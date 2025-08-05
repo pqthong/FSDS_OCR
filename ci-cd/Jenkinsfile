@@ -39,19 +39,19 @@ pipeline {
                     // This prevents conflicts with other projects on the same Jenkins agent.
                     sh 'python3 -m venv venv'
                     
-                    // Activate the virtual environment
-                    sh '. venv/bin/activate'
+                    // --- FIX FOR PERMISSION DENIED ERROR ---
+                    // Directly calling the pip and pytest executables from within the venv
+                    // avoids the need to 'activate' the environment, which can be unreliable
+                    // in a non-interactive shell context like Jenkins. It also ensures
+                    // all packages are installed locally to the workspace.
                     
-                    // Install the testing framework (pytest) and any other dependencies.
-                    // This assumes a 'requirements.txt' file exists in the 'app' directory.
-                    // If your dependencies are not in a requirements file, you would need to install them individually.
-                    sh 'pip install -r app/requirements.txt'
+                    echo 'Installing dependencies from app/requirements.txt...'
+                    // Use the pip executable from the virtual environment to install packages.
+                    sh './venv/bin/pip install -r app/requirements.txt'
                     
                     echo 'Running tests...'
-                    // Execute the specified test file using pytest.
-                    // The 'pytest' command will discover and run tests in 'app/tests/test_main.py'.
-                    // You could also use 'python -m pytest app/tests/test_main.py' if the pytest command is not in the PATH.
-                    sh 'pytest app/tests/test_main.py'
+                    // Use the pytest executable from the virtual environment to run the tests.
+                    sh './venv/bin/pytest app/tests/test_main.py'
                     
                     echo 'Tests completed.'
                 }
