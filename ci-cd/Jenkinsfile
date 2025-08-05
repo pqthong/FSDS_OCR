@@ -8,7 +8,7 @@ pipeline {
         // Define the project ID and cluster name. You can configure these as environment variables in Jenkins.
         GCP_PROJECT_ID = "alert-basis-466711-e1"
         GKE_CLUSTER_NAME = "jenkins-managed-cluster" // <-- REPLACE WITH YOUR CLUSTER NAME
-        GKE_CLUSTER_LOCATION = "asia-southeast1" // <-- REPLACE WITH YOUR CLUSTER REGION/ZONE
+        GKE_CLUSTER_LOCATION = "asia-southeast1-a" // <-- REPLACE WITH YOUR CLUSTER REGION/ZONE
         IMAGE_REPO = "asia-southeast1-docker.pkg.dev/alert-basis-466711-e1/jenkins-artifacts/fsds-ocr"
     }
 
