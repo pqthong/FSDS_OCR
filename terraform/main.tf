@@ -1,47 +1,43 @@
-# main.tf
-
-# Configure the Google Cloud provider
-# Replace 'alert-basis-466711-e1' and 'asia-southeast1' with your own values
-# This uses the default project and region from your gcloud configuration.
 terraform {
   required_providers {
     google = {
-      source = "hashicorp/google"
-      version = "5.45.0"
+      source  = "hashicorp/google"
+      version = "~> 5.0"
     }
   }
 }
 
 provider "google" {
-  project = "alert-basis-466711-e1"
-  region  = "asia-southeast1"
+  project = var.project_id
+  region  = var.gcp_region
+  zone    = var.gcp_zone
 }
 
-# --- GKE Cluster Configuration ---
-
-resource "google_container_cluster" "gke_cluster" {
-  # The name of the GKE cluster
-  name = "ocr-cluster"
-  # The location for the cluster, referencing the provider's region
-  location = "asia-southeast1"
-
-  # We use the most basic machine type and node count for a simple cluster.
-  node_config {
-    machine_type = "e2-micro"
-    disk_size_gb = 12
-  }
-
-  # Set the number of nodes in the cluster to the bare minimum.
-  initial_node_count = 1
+module "jenkins_iam" {
+  source = "./modules/iam"
+  project_id = var.project_id
 }
 
+module "gke_cluster" {
+  source = "./modules/gke-cluster"
 
-# --- Output the cluster details after creation ---
-
-output "cluster_name" {
-  value = google_container_cluster.gke_cluster.name
+  cluster_name      = "jenkins-managed-cluster"
+  location          = var.gcp_zone
+  node_count        = 1
+  node_machine_type = "e2-medium"
 }
 
-output "cluster_endpoint" {
-  value = google_container_cluster.gke_cluster.endpoint
+module "jenkins_instance" {
+  source = "./modules/jenkins-vm"
+
+  vm_name               = "jenkins-vm-e2-medium"
+  zone                  = var.gcp_zone
+  service_account_email = module.jenkins_iam.service_account_email
+  project_id = var.project_id
+}
+
+module "artifact_registry" {
+  source    = "./modules/artifact-registry"
+  location  = var.gcp_region
+  repo_name = "jenkins-artifacts"
 }
